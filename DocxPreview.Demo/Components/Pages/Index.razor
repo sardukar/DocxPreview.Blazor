@@ -1,0 +1,41 @@
+@page "/"
+
+<h1>DOCX Document Preview</h1>
+
+<div class="upload-section">
+    <InputFile OnChange="OnFileSelected" accept=".docx" />
+    @if (isLoading)
+    {
+        <p class="loading">Loading document...</p>
+    }
+</div>
+
+@if (docxBytes != null)
+{
+    <div class="preview-section">
+        <DocxPreview DocumentBytes="docxBytes" OnRendered="OnDocumentRendered" />
+    </div>
+}
+
+@code {
+    private byte[]? docxBytes;
+    private bool isLoading;
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        isLoading = true;
+        docxBytes = null;
+
+        var ms = new MemoryStream();
+        await file.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024).CopyToAsync(ms);
+        docxBytes = ms.ToArray();
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private void OnDocumentRendered()
+    {
+    }
+}

@@ -1,0 +1,13 @@
+.docx-preview-container {
+    width: 100%;
+    overflow: auto;
+}
+
+.docx-preview-container ::deep .docx-wrapper {
+    background: white;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    margin: 0 auto;
+    padding: 40px 60px;
+    max-width: 820px;
+    min-height: 600px;
+}

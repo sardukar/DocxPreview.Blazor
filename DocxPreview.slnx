@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DocxPreview.Blazor/DocxPreview.Blazor.csproj" />
+  <Project Path="DocxPreview.Demo/DocxPreview.Demo.csproj" />
+</Solution>

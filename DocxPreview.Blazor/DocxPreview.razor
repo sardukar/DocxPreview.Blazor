@@ -1,0 +1,73 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+
+<div id="@containerId"
+     class="docx-preview-container @Class"
+     style="@Style">
+</div>
+
+@code {
+    private string containerId = $"docx-preview-{Guid.NewGuid():N}";
+    private IJSObjectReference? module;
+    [Parameter]
+    public byte[]? DocumentBytes { get; set; }
+
+    [Parameter]
+    public DocxRenderOptions? Options { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter]
+    public string? Style { get; set; }
+
+    [Parameter]
+    public EventCallback OnRendered { get; set; }
+
+    [Inject]
+    private IJSRuntime JsRuntime { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && DocumentBytes != null)
+        {
+            await RenderDocument();
+        }
+    }
+
+    public async Task RenderDocument()
+    {
+        if (DocumentBytes == null)
+            return;
+
+        module ??= await JsRuntime.InvokeAsync<IJSObjectReference>(
+            "import",
+            "./_content/DocxPreview.Blazor/docxPreviewInterop.js");
+
+        var options = Options?.ToJsObject() ?? new DocxRenderOptions().ToJsObject();
+
+        await module.InvokeVoidAsync("renderDocx", containerId, DocumentBytes, options);
+
+        if (OnRendered.HasDelegate)
+        {
+            await OnRendered.InvokeAsync();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (module != null)
+        {
+            try
+            {
+                await module.InvokeVoidAsync("dispose", containerId);
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+
+        GC.SuppressFinalize(this);
+    }
+}
